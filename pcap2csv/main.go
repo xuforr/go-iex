@@ -8,6 +8,7 @@ package main
 
 import (
 	"encoding/csv"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -69,13 +70,47 @@ func writeBars(bars []*consolidator.Bar, w *csv.Writer) error {
 }
 
 func main() {
-	packetSource, err := iex.NewPacketDataSource(os.Stdin)
+	args := os.Args
+	if len(args) < 3 {
+		fmt.Println("Please provide at least two arguments")
+		os.Exit(1)
+	}
+	pcapFilename := args[1]
+	outFileName := args[2]
+	statusReportGap := 0
+	var err error
+	if len(args) > 3 {
+		statusReportGap, err = strconv.Atoi(args[3])
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	fmt.Println("====================================")
+	fmt.Printf("Parsing %v to %v\n", pcapFilename, outFileName)
+	if statusReportGap > 0 {
+		fmt.Printf("I will report a status every %d messages processed\n", statusReportGap)
+	}
+	fmt.Println("====================================")
+
+	input, err := os.Open(pcapFilename)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	defer input.Close()
+	packetSource, err := iex.NewPacketDataSource(input)
 	scanner := iex.NewPcapScanner(packetSource)
-	writer := csv.NewWriter(os.Stdout)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Processing input file %v", pcapFilename)
+
+	output, err := os.Create(outFileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer output.Close()
+	writer := csv.NewWriter(output)
 	if err := writer.Write(header); err != nil {
 		log.Fatal(err)
 	}
@@ -83,6 +118,7 @@ func main() {
 
 	var trades []*tops.TradeReportMessage
 	var openTime, closeTime time.Time
+	parsed := 0
 	for {
 		msg, err := scanner.NextMessage()
 		if err != nil {
@@ -111,6 +147,11 @@ func main() {
 			}
 
 			trades = append(trades, msg)
+			parsed = parsed + 1
+			if statusReportGap > 0 && parsed%statusReportGap == 0 {
+				fmt.Printf("Processed %d records\n", parsed)
+			}
 		}
 	}
+	fmt.Printf("Done! A total of %d records were processed.\nExiting...\n", parsed)
 }
