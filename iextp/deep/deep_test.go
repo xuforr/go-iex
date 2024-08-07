@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/timpalpant/go-iex/iextp"
+	"github.com/xuforr/go-iex/iextp"
 )
 
 func TestUnmarshal_UnknownMessageType(t *testing.T) {

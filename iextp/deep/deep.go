@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/timpalpant/go-iex/iextp"
-	"github.com/timpalpant/go-iex/iextp/tops"
+	"github.com/xuforr/go-iex/iextp"
+	"github.com/xuforr/go-iex/iextp/tops"
 )
 
 const (

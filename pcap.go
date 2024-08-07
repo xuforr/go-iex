@@ -10,9 +10,9 @@ import (
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcapgo"
 
-	"github.com/timpalpant/go-iex/iextp"
-	_ "github.com/timpalpant/go-iex/iextp/deep"
-	_ "github.com/timpalpant/go-iex/iextp/tops"
+	"github.com/xuforr/go-iex/iextp"
+	_ "github.com/xuforr/go-iex/iextp/deep"
+	_ "github.com/xuforr/go-iex/iextp/tops"
 )
 
 const (

@@ -12,8 +12,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/timpalpant/go-iex"
-	"github.com/timpalpant/go-iex/iextp"
+	"github.com/xuforr/go-iex"
+	"github.com/xuforr/go-iex/iextp"
 )
 
 func main() {

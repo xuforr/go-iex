@@ -405,6 +405,12 @@ const (
 	Dot11InformationElementIDVHTTxPowerEnvelope        Dot11InformationElementID = 195
 	Dot11InformationElementIDChannelSwitchWrapper      Dot11InformationElementID = 196
 	Dot11InformationElementIDOperatingModeNotification Dot11InformationElementID = 199
+	Dot11InformationElementIDUPSIM                     Dot11InformationElementID = 200
+	Dot11InformationElementIDReducedNeighborReport     Dot11InformationElementID = 201
+	Dot11InformationElementIDTVHTOperation             Dot11InformationElementID = 202
+	Dot11InformationElementIDDeviceLocation            Dot11InformationElementID = 204
+	Dot11InformationElementIDWhiteSpaceMap             Dot11InformationElementID = 205
+	Dot11InformationElementIDFineTuningMeasureParams   Dot11InformationElementID = 206
 	Dot11InformationElementIDVendor                    Dot11InformationElementID = 221
 )
 
@@ -742,6 +748,18 @@ func (a Dot11InformationElementID) String() string {
 		return "Channel Switch Wrapper"
 	case Dot11InformationElementIDOperatingModeNotification:
 		return "Operating Mode Notification"
+	case Dot11InformationElementIDUPSIM:
+		return "UP SIM"
+	case Dot11InformationElementIDReducedNeighborReport:
+		return "Reduced Neighbor Report"
+	case Dot11InformationElementIDTVHTOperation:
+		return "TVHT Op"
+	case Dot11InformationElementIDDeviceLocation:
+		return "Device Location"
+	case Dot11InformationElementIDWhiteSpaceMap:
+		return "White Space Map"
+	case Dot11InformationElementIDFineTuningMeasureParams:
+		return "Fine Tuning Measure Parameters"
 	case Dot11InformationElementIDVendor:
 		return "Vendor"
 	default:
@@ -904,6 +922,7 @@ func (m *Dot11) DecodeFromBytes(data []byte, df gopacket.DecodeFeedback) error {
 	}
 	m.Type = Dot11Type((data[0])&0xFC) >> 2
 
+	m.DataLayer = nil
 	m.Proto = uint8(data[0]) & 0x0003
 	m.Flags = Dot11Flags(data[1])
 	m.DurationID = binary.LittleEndian.Uint16(data[2:4])
@@ -1046,7 +1065,11 @@ func (m *Dot11) DecodeFromBytes(data []byte, df gopacket.DecodeFeedback) error {
 	}
 
 	if mainType == Dot11TypeData {
-		l := dataDecodeMap[m.Type]()
+		d := dataDecodeMap[m.Type]
+		if d == nil {
+			return fmt.Errorf("unsupported type: %v", m.Type)
+		}
+		l := d()
 		err := l.DecodeFromBytes(m.BaseLayer.Payload, df)
 		if err != nil {
 			return err
@@ -1261,8 +1284,10 @@ func decodeDot11DataCFPollNoData(data []byte, p gopacket.PacketBuilder) error {
 	return decodingLayerDecoder(d, data, p)
 }
 
-func (m *Dot11DataCFPollNoData) LayerType() gopacket.LayerType  { return LayerTypeDot11DataCFPollNoData }
-func (m *Dot11DataCFPollNoData) CanDecode() gopacket.LayerClass { return LayerTypeDot11DataCFPollNoData }
+func (m *Dot11DataCFPollNoData) LayerType() gopacket.LayerType { return LayerTypeDot11DataCFPollNoData }
+func (m *Dot11DataCFPollNoData) CanDecode() gopacket.LayerClass {
+	return LayerTypeDot11DataCFPollNoData
+}
 func (m *Dot11DataCFPollNoData) DecodeFromBytes(data []byte, df gopacket.DecodeFeedback) error {
 	return m.Dot11Data.DecodeFromBytes(data, df)
 }
@@ -1320,8 +1345,10 @@ func decodeDot11DataQOSDataCFAck(data []byte, p gopacket.PacketBuilder) error {
 	return decodingLayerDecoder(d, data, p)
 }
 
-func (m *Dot11DataQOSDataCFAck) LayerType() gopacket.LayerType     { return LayerTypeDot11DataQOSDataCFAck }
-func (m *Dot11DataQOSDataCFAck) CanDecode() gopacket.LayerClass    { return LayerTypeDot11DataQOSDataCFAck }
+func (m *Dot11DataQOSDataCFAck) LayerType() gopacket.LayerType { return LayerTypeDot11DataQOSDataCFAck }
+func (m *Dot11DataQOSDataCFAck) CanDecode() gopacket.LayerClass {
+	return LayerTypeDot11DataQOSDataCFAck
+}
 func (m *Dot11DataQOSDataCFAck) NextLayerType() gopacket.LayerType { return LayerTypeDot11DataCFAck }
 
 type Dot11DataQOSDataCFPoll struct {
@@ -1442,6 +1469,10 @@ func (m *Dot11InformationElement) DecodeFromBytes(data []byte, df gopacket.Decod
 	if len(data) < offset+int(m.Length) {
 		df.SetTruncated()
 		return fmt.Errorf("Dot11InformationElement length %v too short, %v required", len(data), offset+int(m.Length))
+	}
+	if len(data) < offset+4 {
+		df.SetTruncated()
+		return fmt.Errorf("vendor extension size < %d", offset+int(m.Length))
 	}
 	if m.ID == 221 {
 		// Vendor extension

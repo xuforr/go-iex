@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/timpalpant/go-iex/iextp"
+	"github.com/xuforr/go-iex/iextp"
 )
 
 const (

@@ -276,7 +276,7 @@ func (bit *intBool) UnmarshalJSON(data []byte) error {
 
 // UnmarshalJSON customizes JSON unmarshalling for the Stats
 // type to be able to decode either 0/1 or true/false in the
-// IsHalfDay field (see: https://github.com/timpalpant/go-iex/issues/21).
+// IsHalfDay field (see: https://github.com/xuforr/go-iex/issues/21).
 func (s *Stats) UnmarshalJSON(data []byte) error {
 	type Alias Stats
 	tmp := &struct {

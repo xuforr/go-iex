@@ -4,7 +4,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/timpalpant/go-iex/iextp/tops"
+	"github.com/xuforr/go-iex/iextp/tops"
 )
 
 // Bar represents trades aggregated over a time interval.
