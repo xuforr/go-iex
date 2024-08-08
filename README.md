@@ -13,6 +13,20 @@ and does not endorse or recommend this library.
 
 ## Usage
 
+### pcap2table
+You can use the included `pcap2table` tool to create intraday minute bars from pcap data files:
+```
+$ go install github.com/xuforr/go-iex/pcap2table
+$ pcap2table -pcaf=<PCAF_FILE_NAME> -db=<MYSQL_CONFIG> -csv=<OUTPUT_CSV>
+```
+
+which produces a table with OHLC data and trading hour boolean (with daylight saving adjusted)
+
+```csv
+symbol,time,open,high,low,close,volume,istradinghour
+AAPL,2017-07-10T14:33:00Z,148.9100,149.0000,148.9100,148.9800,2527, true
+```
+
 ### pcap2csv
 
 You can use the included `pcap2csv` tool to create intraday minute bars from the pcap data files:
